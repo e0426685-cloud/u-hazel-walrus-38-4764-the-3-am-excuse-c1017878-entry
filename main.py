@@ -54,6 +54,8 @@ def validate(text):
         )
     if not text.strip():
         raise ValueError("entry must not be only white space")
+    if text != text.strip():
+        raise ValueError("entry must not start or end with white space")
     if "\n" in text or "\r" in text:
         raise ValueError("entry must be exactly one line")
     text.encode("utf-8")  # must be valid UTF-8 text
@@ -68,6 +70,12 @@ def main():
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         f.write(text)
     os.chmod(OUTPUT_PATH, 0o644)
+    # Read back and confirm the file holds exactly the validated text,
+    # so a partial or failed write is caught here instead of at grade time.
+    with open(OUTPUT_PATH, "r", encoding="utf-8") as f:
+        written = f.read()
+    if written != text:
+        raise ValueError("read-back mismatch: %s does not hold the entry" % OUTPUT_PATH)
     print("Wrote %d characters to %s" % (len(text), OUTPUT_PATH))
 
 
